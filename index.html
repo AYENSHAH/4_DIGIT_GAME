@@ -3,91 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mastermind Pro: Bottom Leaderboard</title>
+    <title>Mastermind Pro: Firebase Edition</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #121212;
-            color: white;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container-wrapper {
-            max-width: 900px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Atas: Game & Log */
-        .top-section {
-            display: flex;
-            gap: 20px;
-        }
-
-        .game-box {
-            background: #1e1e1e;
-            padding: 30px;
-            border-radius: 15px;
-            flex: 2;
-            text-align: center;
-            border: 1px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .log-box {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 15px;
-            flex: 1;
-            border: 1px solid #333;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        /* Bawah: Leaderboard */
-        .bottom-section {
-            background: #1e1e1e;
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid #333;
-        }
-
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; margin: 0; display: flex; justify-content: center; padding: 20px; }
+        .container-wrapper { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+        .top-section { display: flex; gap: 20px; }
+        .game-box { background: #1e1e1e; padding: 30px; border-radius: 15px; flex: 2; text-align: center; border: 1px solid #333; }
+        .log-box { background: #1e1e1e; padding: 20px; border-radius: 15px; flex: 1; border: 1px solid #333; max-height: 350px; overflow-y: auto; }
+        .bottom-section { background: #1e1e1e; padding: 25px; border-radius: 15px; border: 1px solid #333; }
         h1, h3 { color: #00d2ff; margin-top: 0; }
         .stats { display: flex; justify-content: space-around; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; }
-
-        input {
-            padding: 15px; width: 80%; font-size: 28px; border-radius: 10px; border: none;
-            text-align: center; margin-bottom: 20px; letter-spacing: 8px; outline: none;
-            background: #252525; color: white; border: 1px solid #444;
-        }
-
-        button {
-            padding: 15px; width: 85%; font-size: 18px; cursor: pointer;
-            background: #00d2ff; border: none; border-radius: 10px; font-weight: bold; color: #121212;
-        }
-
-        /* Gaya Senarai Leaderboard (Grid 2 Kolum) */
-        .leaderboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            text-align: left;
-        }
-
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background: #252525;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
+        input { padding: 15px; width: 80%; font-size: 28px; border-radius: 10px; border: none; text-align: center; margin-bottom: 20px; background: #252525; color: white; }
+        button { padding: 15px; width: 85%; font-size: 18px; cursor: pointer; background: #00d2ff; border: none; border-radius: 10px; font-weight: bold; }
+        .leaderboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
+        .list-item { display: flex; justify-content: space-between; padding: 10px; background: #252525; border-radius: 8px; font-size: 14px; }
         .rank { color: #fdbb2d; font-weight: bold; }
         .log-entry { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; }
     </style>
@@ -97,28 +28,54 @@
 <div class="container-wrapper">
     <div class="top-section">
         <div class="game-box">
-            <h1>🔢 CODE BREAKER</h1>
+            <h1>🔢 CLOUD BREAKER</h1>
             <div class="stats">
                 <span>⏱️ <span id="timer">0</span>s</span>
                 <span>🎯 Cubaan: <span id="count">0</span></span>
             </div>
             <input type="text" id="tekaanUser" maxlength="4" placeholder="----" onkeydown="if(event.key === 'Enter') mainkan()">
-            <button onclick="mainkan()">TEKA!</button>
+            <button id="btnTeka" onclick="mainkan()">TEKA!</button>
         </div>
-
         <div class="log-box">
             <h3>📜 LOG TEKAAN</h3>
             <div id="logDisplay">Sila mula meneka...</div>
         </div>
     </div>
-
     <div class="bottom-section">
-        <h3>🏆 TOP 10 TERBAIK</h3>
-        <div id="leaderboardDisplay" class="leaderboard-grid">Tiada rekod...</div>
+        <h3>🏆 GLOBAL TOP 10</h3>
+        <div id="leaderboardDisplay" class="leaderboard-grid">Memuatkan data...</div>
     </div>
 </div>
 
 <script>
+    // --- GANTIKAN DENGAN CONFIG ANDA SENDIRI ---
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDc1ZmWfkalGQ-T2WXh2akhE5_Lwmbx5S0",
+  authDomain: "tekadigitgame.firebaseapp.com",
+  databaseURL: "https://tekadigitgame-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tekadigitgame",
+  storageBucket: "tekadigitgame.firebasestorage.app",
+  messagingSenderId: "238018883673",
+  appId: "1:238018883673:web:4baf7c9f9f10678c3fc148",
+  measurementId: "G-L2MTQFT3HL"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+    // -------------------------------------------
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const soundWin = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_bb630cc098.mp3');
     const soundClick = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
 
@@ -127,19 +84,23 @@
 
     let percubaan = 0, masa = 0, timerActive = false, interval;
 
-    function paparkanLeaderboard() {
-        let scores = JSON.parse(localStorage.getItem('mastermindTopScores')) || [];
+    // Baca data secara Live dari Firebase
+    db.ref('scores').on('value', (snapshot) => {
+        const data = snapshot.val();
+        let scores = [];
+        for (let id in data) { scores.push(data[id]); }
+        
+        // Susun skor Global
+        scores.sort((a, b) => a.cubaan - b.cubaan || a.masa - b.masa);
+        
         const display = document.getElementById('leaderboardDisplay');
-        if (scores.length === 0) return;
-
         display.innerHTML = scores.slice(0, 10).map((s, index) => `
             <div class="list-item">
                 <span><span class="rank">${index + 1}.</span> ${s.nama}</span>
                 <span>${s.cubaan} Try | ${s.masa}s</span>
             </div>
         `).join('');
-    }
-    paparkanLeaderboard();
+    });
 
     function startTimer() {
         if (!timerActive) {
@@ -172,24 +133,15 @@
             }
         }
 
-        const logDiv = document.getElementById('logDisplay');
-        if (percubaan === 1) logDiv.innerHTML = "";
-        logDiv.innerHTML = `
-            <div class="log-entry">
-                <span>#${percubaan}: <b>${input}</b></span>
-                <span><span style="color:#28a745">${B}B</span> <span style="color:#fdbb2d">${S}S</span></span>
-            </div>
-        ` + logDiv.innerHTML;
+        document.getElementById('logDisplay').innerHTML = `<div class="log-entry"><span>#${percubaan}: <b>${input}</b></span><span>${B}B ${S}S</span></div>` + (percubaan === 1 ? "" : document.getElementById('logDisplay').innerHTML);
 
         if (B === 4) {
             clearInterval(interval);
             soundWin.play();
             setTimeout(() => {
-                let nama = prompt(`TAHNIAH! Anda menang dlm ${percubaan} cubaan.\nMasukkan nama anda:`) || "Anonymous";
-                let scores = JSON.parse(localStorage.getItem('mastermindTopScores')) || [];
-                scores.push({ nama, cubaan: percubaan, masa });
-                scores.sort((a, b) => a.cubaan - b.cubaan || a.masa - b.masa);
-                localStorage.setItem('mastermindTopScores', JSON.stringify(scores.slice(0, 10)));
+                let nama = prompt("🎉 TAHNIAH! Masukkan nama untuk Global Leaderboard:") || "Pemain Misteri";
+                // Simpan ke Firebase
+                db.ref('scores').push({ nama, cubaan: percubaan, masa });
                 location.reload();
             }, 500);
         }
