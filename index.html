@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Teka 4 Digit</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding-top: 50px; }
+        .container { background: white; padding: 20px; border-radius: 10px; display: inline-block; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input { padding: 10px; width: 150px; font-size: 18px; text-align: center; }
+        button { padding: 10px 20px; font-size: 18px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; }
+        #log { margin-top: 20px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Game Teka 4 Digit</h1>
+    <p>Masukkan 4 digit (cth: 1234):</p>
+    <input type="text" id="tekaanUser" maxlength="4">
+    <button onclick="mainkan()">Teka!</button>
+    
+    <div id="result"></div>
+    <div id="log"></div>
+</div>
+
+<script>
+    // 1. Jana nombor rahsia secara rawak
+    let secret = [];
+    for (let i = 0; i < 4; i++) {
+        secret.push(Math.floor(Math.random() * 10));
+    }
+    let percubaan = 0;
+
+    function mainkan() {
+        let input = document.getElementById('tekaanUser').value;
+        if (input.length !== 4) {
+            alert("Sila masukkan 4 digit!");
+            return;
+        }
+
+        let guess = input.split('').map(Number);
+        percubaan++;
+        let B = 0;
+        let S = 0;
+        let usedSecret = [false, false, false, false];
+        let usedGuess = [false, false, false, false];
+
+        // Kira B
+        for (let i = 0; i < 4; i++) {
+            if (guess[i] === secret[i]) {
+                B++;
+                usedSecret[i] = true;
+                usedGuess[i] = true;
+            }
+        }
+
+        // Kira S
+        for (let i = 0; i < 4; i++) {
+            if (usedGuess[i]) continue;
+            for (let j = 0; j < 4; j++) {
+                if (!usedSecret[j] && guess[i] === secret[j]) {
+                    S++;
+                    usedSecret[j] = true;
+                    break;
+                }
+            }
+        }
+
+        // Paparkan keputusan
+        let resultDiv = document.getElementById('result');
+        let logDiv = document.getElementById('log');
+        
+        resultDiv.innerHTML = `<h3>Keputusan: ${B}B ${S}S</h3>`;
+        logDiv.innerHTML += `<p>Percubaan #${percubaan}: ${input} -> ${B}B ${S}S</p>`;
+
+        if (B === 4) {
+            alert(`TAHNIAH! Anda menang dalam ${percubaan} cubaan!`);
+            location.reload(); // Reset game
+        }
+        
+        document.getElementById('tekaanUser').value = ""; // Kosongkan input
+    }
+</script>
+
+</body>
+</html>
